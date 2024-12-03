@@ -3,21 +3,20 @@ import numpy as np
 import random
 
 def generate_maze(width, height):
-    # Create a grid with walls
     maze = np.ones((2 * height + 1, 2 * width + 1), dtype=int)
 
-    # Create cells
     for y in range(height):
         for x in range(width):
             maze[y * 2 + 1, x * 2 + 1] = 0
 
     return maze
 
-def carve_passages(maze, width, height, start_x=0, start_y=0):
+def carve_passages(maze, width, height, start_x=0, start_y=0, update_freq=1):
     directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
     stack = [(start_x * 2 + 1, start_y * 2 + 1)]
     visited = set(stack)
     backtracked_cells = set()
+    iteration = 0
 
     while stack:
         x, y = stack[-1]
@@ -34,7 +33,9 @@ def carve_passages(maze, width, height, start_x=0, start_y=0):
                 visited.add((wall_x, wall_y))  # Add the removed wall to visited/removed set
 
                 # Visualize the maze generation
-                #visualize_maze(maze, visited, backtracked_cells, (start_x * 2 + 1, start_y * 2 + 1), (nx, ny))
+                iteration += 1
+                if iteration % update_freq == 0:
+                    visualize_maze(maze, visited, backtracked_cells, (start_x * 2 + 1, start_y * 2 + 1), (nx, ny))
                 break
         else:
             # Backtrack
@@ -43,7 +44,9 @@ def carve_passages(maze, width, height, start_x=0, start_y=0):
                 bx, by = stack[-1]
                 backtracked_cells.add(((x + bx) // 2, (y + by) // 2))
 
-                #visualize_maze(maze, visited, backtracked_cells, (start_x * 2 + 1, start_y * 2 + 1), ((x+bx)//2, (y+by)//2))
+                iteration += 1
+                if iteration % update_freq == 0:
+                    visualize_maze(maze, visited, backtracked_cells, (start_x * 2 + 1, start_y * 2 + 1), ((x+bx)//2, (y+by)//2))
 
 def visualize_maze(maze, visited, backtracked_cells, start, end):
     color_maze = np.zeros((*maze.shape, 3))
@@ -58,10 +61,9 @@ def visualize_maze(maze, visited, backtracked_cells, start, end):
     color_maze[start[1], start[0]] = [0, 1, 0]
     color_maze[end[1], end[0]] = [1, 0, 0]
 
-    plt.gcf().set_facecolor('black')
+    plt.gcf().set_facecolor('white')
     plt.imshow(color_maze, interpolation='nearest')
     plt.axis('off')
-    plt.draw()
     plt.pause(0.0001)
 
 def display_maze(maze):
