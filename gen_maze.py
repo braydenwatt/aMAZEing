@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import random
-import time
 
 def generate_maze(width, height):
     # Create a grid with walls
@@ -35,7 +34,7 @@ def carve_passages(maze, width, height, start_x=0, start_y=0):
                 visited.add((wall_x, wall_y))  # Add the removed wall to visited/removed set
 
                 # Visualize the maze generation
-                visualize_maze(maze, visited, backtracked_cells, (start_x * 2 + 1, start_y * 2 + 1), (nx, ny))
+                #visualize_maze(maze, visited, backtracked_cells, (start_x * 2 + 1, start_y * 2 + 1), (nx, ny))
                 break
         else:
             # Backtrack
@@ -44,7 +43,7 @@ def carve_passages(maze, width, height, start_x=0, start_y=0):
                 bx, by = stack[-1]
                 backtracked_cells.add(((x + bx) // 2, (y + by) // 2))
 
-                visualize_maze(maze, visited, backtracked_cells, (start_x * 2 + 1, start_y * 2 + 1), ((x+bx)//2, (y+by)//2))
+                #visualize_maze(maze, visited, backtracked_cells, (start_x * 2 + 1, start_y * 2 + 1), ((x+bx)//2, (y+by)//2))
 
 def visualize_maze(maze, visited, backtracked_cells, start, end):
     color_maze = np.zeros((*maze.shape, 3))
@@ -63,12 +62,25 @@ def visualize_maze(maze, visited, backtracked_cells, start, end):
     plt.imshow(color_maze, interpolation='nearest')
     plt.axis('off')
     plt.draw()
-    plt.pause(0.001)
+    plt.pause(0.0001)
 
+def display_maze(maze):
+    color_maze = np.zeros((*maze.shape, 3))
+    color_maze[maze == 1] = [0, 0, 0]
+    color_maze[maze == 0] = [1, 1, 1]
+    color_maze[1,1] = [0, 1, 0]
+    color_maze[-1 -1, -1 - 1] = [1, 0, 0]
 
-width, height = 5, 10
+    plt.gcf().set_facecolor('white')
+    plt.imshow(color_maze, interpolation='nearest')
+    plt.axis('off')
+    plt.draw()
+    plt.show()
+
+width, height = 20, 20
 maze = generate_maze(width, height)
 plt.figure(figsize=(10, 10))
 carve_passages(maze, width, height)
 plt.show()
 print(maze)
+display_maze(maze)
