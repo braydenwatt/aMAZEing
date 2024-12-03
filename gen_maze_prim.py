@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 
+plt.figure(figsize=(10, 10))
+
 def generate_maze(width, height):
     maze = np.ones((2 * height + 1, 2 * width + 1), dtype=int)
 
@@ -14,10 +16,11 @@ def generate_maze(width, height):
 def visualize_maze(maze):
     # Visualization code for the maze (optional, can be customized)
     plt.imshow(maze, cmap="binary")
+    plt.title("Prim's Maze Generation")
     plt.axis('off')
     plt.pause(0.001)
 
-def carve_passages_prim(maze, width, height, start_x=0, start_y=0, update_interval=10):
+def carve_passages_prim(maze, width, height, start_x=0, start_y=0, update_interval=10, visualize=False):
     directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
     walls = []
 
@@ -63,25 +66,38 @@ def carve_passages_prim(maze, width, height, start_x=0, start_y=0, update_interv
                     walls.append((wx2, wy2))
 
         iteration += 1
-        if iteration % update_interval == 0:
+        if iteration % update_interval == 0 and visualize:
             visualize_maze(maze)  # Only visualize every `update_interval` iterations
 
 def display_maze(maze):
     color_maze = np.zeros((*maze.shape, 3))
     color_maze[maze == 1] = [0, 0, 0]
     color_maze[maze == 0] = [1, 1, 1]
-    color_maze[1,1] = [0, 1, 0]
-    color_maze[-1 -1, -1 - 1] = [1, 0, 0]
+    #color_maze[1,1] = [0, 1, 0]
+    #color_maze[-2, -2] = [1, 0, 0]
 
+    plt.title("Completed Maze")
     plt.gcf().set_facecolor('white')
     plt.imshow(color_maze, interpolation='nearest')
     plt.axis('off')
     plt.draw()
     plt.show()
 
+def save_maze_image(maze, filename='maze_image.png'):
+    color_maze = np.zeros((*maze.shape, 3))
+    color_maze[maze == 1] = [0, 0, 0]  # Walls as black
+    color_maze[maze == 0] = [1, 1, 1]  # Passages as white
+    print(maze.shape[1])
+
+    # Display the maze
+    plt.imshow(color_maze, interpolation='nearest')
+    plt.axis('off')
+
+    # Save the image with no extra padding
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.0)
+    plt.close()
+
 width, height = 20, 20
 maze = generate_maze(width, height)
-plt.figure(figsize=(10, 10))
 carve_passages_prim(maze, width, height)
-plt.show()
-print(maze)
+save_maze_image(maze, 'generated_prim.png')

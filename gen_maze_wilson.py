@@ -2,52 +2,39 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 
-
 def generate_maze(width, height):
-    """Initialize the maze grid with walls everywhere."""
     maze = np.ones((2 * height + 1, 2 * width + 1), dtype=int)
 
-    # Create initial cell grid
     for y in range(height):
         for x in range(width):
             maze[y * 2 + 1, x * 2 + 1] = 0
 
     return maze
 
-
 def visualize_maze(maze, current_path=None, unvisited=None, title="Wilson's Maze Generation"):
-    """Visualize the maze generation process with improved color scheme."""
-    # Create a black background
     color_maze = np.zeros((*maze.shape, 3))
 
-    # Render the maze state
     for y in range(maze.shape[0]):
         for x in range(maze.shape[1]):
             if maze[y, x] == 0:
-                color_maze[y, x] = [1, 1, 1]  # White for passages
+                color_maze[y, x] = [1, 1, 1]
 
-    # Unvisited cells in dark blue
     if unvisited:
         for cell in unvisited:
-            color_maze[cell[1], cell[0]] = [0, 0, 0]  # Dark blue for unvisited cells
+            color_maze[cell[1], cell[0]] = [0, 0, 0]
 
-    # Current path in bright blue (including walls)
     if current_path:
         for i in range(len(current_path) - 1):
             # Color the cell
-            color_maze[current_path[i][1], current_path[i][0]] = [0, 0.7, 1]
+            color_maze[current_path[i][1], current_path[i][0]] = [0.2, 0.2, 1]
 
             # Color the wall between cells
             wall_x = (current_path[i][0] + current_path[i + 1][0]) // 2
             wall_y = (current_path[i][1] + current_path[i + 1][1]) // 2
-            color_maze[wall_y, wall_x] = [0, 0.7, 1]
+            color_maze[wall_y, wall_x] = [0.2, 0.2, 1]
 
         # Color the last cell in the path
-        color_maze[current_path[-1][1], current_path[-1][0]] = [0, 0.7, 1]
-
-    # Highlight start and end
-    color_maze[1, 1] = [0, 1, 0]  # Start (green)
-    color_maze[-2, -2] = [1, 0, 0]  # End (red)
+        color_maze[current_path[-1][1], current_path[-1][0]] = [0.2, 0.2, 1]
 
     plt.clf()
     plt.imshow(color_maze, interpolation='nearest')
@@ -58,26 +45,20 @@ def visualize_maze(maze, current_path=None, unvisited=None, title="Wilson's Maze
 
 
 def wilsons_algorithm(width, height, visualize=True):
-    """Generate a maze using Wilson's algorithm with optional visualization."""
-    # Initialize maze
     maze = generate_maze(width, height)
 
-    # Create list of all cells
     all_cells = [(x * 2 + 1, y * 2 + 1)
                  for y in range(height)
                  for x in range(width)]
 
-    # Track visited and unvisited cells
     unvisited = set(all_cells)
 
-    # Choose a random starting cell and mark as visited
     start = random.choice(list(unvisited))
     unvisited.remove(start)
 
     if visualize:
         plt.figure(figsize=(10, 10))
 
-    # Continue until all cells are visited
     while unvisited:
         # Choose an unvisited cell to start a random walk
         current = random.choice(list(unvisited))
@@ -140,13 +121,36 @@ def wilsons_algorithm(width, height, visualize=True):
 
     return maze
 
+def save_maze_image(maze, filename='maze_image.png'):
+    color_maze = np.zeros((*maze.shape, 3))
+    color_maze[maze == 1] = [0, 0, 0]
+    color_maze[maze == 0] = [1, 1, 1]
+
+    plt.imshow(color_maze, interpolation='nearest')
+    plt.axis('off')
+    plt.savefig(filename, bbox_inches='tight', pad_inches=0.0)
+    plt.close()
+
+def display_maze(maze):
+    color_maze = np.zeros((*maze.shape, 3))
+    color_maze[maze == 1] = [0, 0, 0]
+    color_maze[maze == 0] = [1, 1, 1]
+    #color_maze[1,1] = [0, 1, 0]
+    #color_maze[-2, -2] = [1, 0, 0]
+
+    plt.title("Completed Maze")
+    plt.gcf().set_facecolor('white')
+    plt.imshow(color_maze, interpolation='nearest')
+    plt.axis('off')
+    plt.draw()
+    plt.show()
 
 def main():
-    width, height = 10, 10
-    random.seed(42)  # For reproducibility
-    maze = wilsons_algorithm(width, height)
-    print(maze)
-
+    width, height = 20, 20
+    random.seed(42)
+    maze = wilsons_algorithm(width, height, False)
+    print(len(maze))
+    save_maze_image(maze,'generated_wilson.png')
 
 if __name__ == "__main__":
     main()
