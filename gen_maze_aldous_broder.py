@@ -64,6 +64,10 @@ def visualize_maze_pygame(screen, maze, visited, current_cell):
         for x in range(maze.shape[1]):
             if maze[y, x] == 1:
                 pygame.draw.rect(screen, (0, 0, 0), (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+            if maze[y, x] == 0:
+                # Draw empty cell (20x20 pixels)
+                color = (255, 255, 255)
+                pygame.draw.rect(screen, color, (x * CELL_SIZE, y * CELL_SIZE, (CELL_SIZE), (CELL_SIZE)))
 
     # Draw visited cells (cells with value 0)
     for x, y in visited:
@@ -89,7 +93,7 @@ def display_maze(screen, maze):
 def main():
     pygame.init()
 
-    width, height = 20, 20  # Maze dimensions
+    width, height = 30, 30  # Maze dimensions
     maze = generate_maze(width, height)
 
     # Set up the display
@@ -98,7 +102,7 @@ def main():
     pygame.display.set_caption("Aldous-Broder Maze Generation")
 
     # Run maze generation
-    carve_passages(maze, width, height, visualize=True, screen=screen)
+    carve_passages(maze, width, height, visualize=False, screen=screen)
 
     # Show the final maze after completion
     display_maze(screen, maze)

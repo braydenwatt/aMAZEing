@@ -36,7 +36,7 @@ def carve_passages(maze, width, height, start_x=0, start_y=0, screen=None):
                 stack.append((nx, ny))
                 visited.add((nx, ny))
 
-                visualize_maze_pygame(screen, maze)
+                visualize_maze_pygame(screen, maze, (ny, nx))
                 pygame.display.flip()
                 pygame.time.delay(10)  # Adjust delay for speed
 
@@ -66,7 +66,6 @@ def main():
     maze = generate_maze(width, height)
     screen_size = (maze.shape[1] * CELL_SIZE, maze.shape[0] * CELL_SIZE)
     screen = pygame.display.set_mode(screen_size)
-    visualize_maze_pygame(screen, maze)
     pygame.display.set_caption("Maze Generation")
     clock = pygame.time.Clock()
 

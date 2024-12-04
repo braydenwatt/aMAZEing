@@ -9,41 +9,40 @@ FPS = 60
 # Initialize Pygame
 pygame.init()
 
+
 def generate_maze(width, height):
     maze = np.ones((2 * height + 1, 2 * width + 1), dtype=int)
 
+    # Carve out passageways
     for y in range(height):
         for x in range(width):
-            maze[y * 2 + 1, x * 2 + 1] = 0
+            maze[2 * y + 1, 2 * x + 1] = 0  # Make every odd cell a passage
 
     return maze
 
+
 def visualize_maze(screen, maze):
     screen.fill((0, 0, 0))  # Clear the screen
-    color_maze = np.zeros((*maze.shape, 3), dtype=int)
 
-    # Walls as black
-    color_maze[maze == 1] = [0, 0, 0]
-    # Passages as white
-    color_maze[maze == 0] = [255, 255, 255]
-
-    # Draw the maze
     for y in range(maze.shape[0]):
         for x in range(maze.shape[1]):
-            pygame.draw.rect(screen, color_maze[y, x], (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+            if maze[y, x] == 0:
+                color = (255, 255, 255)  # White for passages
+            else:
+                color = (0, 0, 0)  # Black for walls
+            pygame.draw.rect(screen, color, (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
 
     pygame.display.flip()
+
 
 def carve_passages_prim(maze, width, height, start_x=0, start_y=0, screen=None, visualize=True):
     directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
     walls = []
+    visited = set()
 
-    # Start with a grid full of walls
-    maze[:, :] = 1
-
-    # Pick a starting cell and mark it as part of the maze
+    # Pick a starting cell and mark it as visited
     start_cell = (start_y * 2 + 1, start_x * 2 + 1)
-    maze[start_cell[0], start_cell[1]] = 0
+    visited.add(start_cell)
 
     # Add the walls of the starting cell to the wall list
     for dx, dy in directions:
@@ -53,24 +52,26 @@ def carve_passages_prim(maze, width, height, start_x=0, start_y=0, screen=None, 
 
     while walls:
         # Pick a random wall from the list
-        random.shuffle(walls)
-        wx, wy = walls.pop()
+        wx, wy = random.choice(walls)
+        walls.remove((wx, wy))
 
         # Check if it can be a passage
         neighbors = []
         for dx, dy in directions:
-            nx, ny = wx + dy, wy + dx
-            if 0 <= nx < maze.shape[0] and 0 <= ny < maze.shape[1] and maze[nx, ny] == 0:
-                neighbors.append((nx, ny))
+            nx, ny = wx + dx, wy + dy
+            if 0 <= nx < maze.shape[0] and 0 <= ny < maze.shape[1]:
+                if maze[nx, ny] == 0 and (nx, ny) in visited:
+                    neighbors.append((nx, ny))
 
-        if len(neighbors) == 1:  # Only one visited cell
+        if len(neighbors) == 1:
             # Make the wall a passage
             maze[wx, wy] = 0
             nx, ny = neighbors[0]
             new_cell = (2 * wx - nx, 2 * wy - ny)
 
-            # Mark the unvisited cell as part of the maze
+            # Mark the unvisited cell as part of the maze and visited
             maze[new_cell[0], new_cell[1]] = 0
+            visited.add(new_cell)
 
             # Add the neighboring walls of the new cell to the wall list
             for dx, dy in directions:
@@ -84,13 +85,14 @@ def carve_passages_prim(maze, width, height, start_x=0, start_y=0, screen=None, 
 
                 # Draw a green border around the latest added cell
                 current_x, current_y = new_cell
-                pygame.draw.rect(screen, (0, 255, 0), (current_y * CELL_SIZE, current_x * CELL_SIZE, CELL_SIZE, CELL_SIZE), 3)
+                pygame.draw.rect(screen, (0, 255, 0),
+                                 (current_y * CELL_SIZE, current_x * CELL_SIZE, CELL_SIZE, CELL_SIZE), 3)
 
                 pygame.display.flip()
-                pygame.time.delay(10)  # Adjust delay for speed
+                pygame.time.delay(100)  # Adjust delay for speed
                 pygame.event.pump()  # Handle Pygame events (e.g., quit)
-
     return maze
+
 
 def main():
     width, height = 20, 20  # Maze dimensions
@@ -100,6 +102,7 @@ def main():
     screen_size = (maze.shape[1] * CELL_SIZE, maze.shape[0] * CELL_SIZE)
     screen = pygame.display.set_mode(screen_size)
     pygame.display.set_caption("Prim's Maze Generation")
+    visualize_maze(screen, maze)
 
     # Run maze generation
     carve_passages_prim(maze, width, height, 0, 0, screen=screen, visualize=True)
@@ -118,6 +121,7 @@ def main():
         pygame.time.Clock().tick(FPS)
 
     pygame.quit()
+
 
 if __name__ == "__main__":
     main()
