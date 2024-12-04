@@ -1,19 +1,21 @@
-import matplotlib.pyplot as plt
+import pygame
 import numpy as np
 import random
 
+# Constants for visualization
+CELL_SIZE = 20
+FPS = 60
+
+# Generate the maze grid
 def generate_maze(width, height):
     maze = np.ones((2 * height + 1, 2 * width + 1), dtype=int)
-
     for y in range(height):
         for x in range(width):
             maze[y * 2 + 1, x * 2 + 1] = 0
-
     return maze
 
-def carve_passages(maze, width, height, update_freq=1, visualize=False):
+def carve_passages(maze, width, height, visualize=False, screen=None):
     directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
-    iteration = 0
 
     visited = set()
 
@@ -25,7 +27,6 @@ def carve_passages(maze, width, height, update_freq=1, visualize=False):
     unvisited.remove(current)
 
     while unvisited:
-        print(unvisited)
         random.shuffle(directions)
         x, y = current
         for dx, dy in directions:
@@ -44,58 +45,74 @@ def carve_passages(maze, width, height, update_freq=1, visualize=False):
 
                 current = next_cell
 
-                iteration += 1
-                if iteration % update_freq == 0 and visualize:
-                    visualize_maze(maze, visited, next_cell)
+                if visualize:
+                    visualize_maze_pygame(screen, maze, list(visited), current)
+                    pygame.display.flip()
+                    pygame.time.delay(10)  # Adjust delay for speed
+                    pygame.event.pump()  # Handle Pygame events (e.g., quit)
 
                 break
 
     return maze
 
-def visualize_maze(maze, visited, last):
-    color_maze = np.zeros((*maze.shape, 3))
-    color_maze[maze == 1] = [0, 0, 0]
-    color_maze[maze == 0] = [0, 0, 0]
+# Visualize the maze using Pygame
+def visualize_maze_pygame(screen, maze, visited, current_cell):
+    screen.fill((0, 0, 0))  # Clear the screen
 
+    # Draw walls (cells with value 1)
+    for y in range(maze.shape[0]):
+        for x in range(maze.shape[1]):
+            if maze[y, x] == 1:
+                pygame.draw.rect(screen, (0, 0, 0), (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+
+    # Draw visited cells (cells with value 0)
     for x, y in visited:
-        color_maze[y, x] = [1, 1, 1]
-    last_x, last_y = last
+        pygame.draw.rect(screen, (255, 255, 255), (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
 
-    color_maze[last_y, last_x] = [0, 1, 0]
-    plt.title("Aldous Broder Maze Generation")
-    plt.gcf().set_facecolor('white')
-    plt.imshow(color_maze, interpolation='nearest')
-    plt.axis('off')
-    plt.pause(0.0001)
+    # Highlight the current cell with a green border
+    current_x, current_y = current_cell
+    pygame.draw.rect(screen, (0, 255, 0), (current_x * CELL_SIZE, current_y * CELL_SIZE, CELL_SIZE, CELL_SIZE), 3)
 
-def display_maze(maze):
-    color_maze = np.zeros((*maze.shape, 3))
-    color_maze[maze == 1] = [0, 0, 0]
-    color_maze[maze == 0] = [1, 1, 1]
-    #color_maze[1,1] = [0, 1, 0]
-    #color_maze[-2, -2] = [1, 0, 0]
+    pygame.display.flip()
 
-    plt.title("Completed Maze")
-    plt.gcf().set_facecolor('white')
-    plt.imshow(color_maze, interpolation='nearest')
-    plt.axis('off')
-    plt.draw()
-    plt.show()
+# Display the completed maze
+def display_maze(screen, maze):
+    for y in range(maze.shape[0]):
+        for x in range(maze.shape[1]):
+            if maze[y, x] == 1:
+                pygame.draw.rect(screen, (0, 0, 0), (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+            else:
+                pygame.draw.rect(screen, (255, 255, 255), (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+    pygame.display.flip()
 
-def save_maze_image(maze, filename='maze_image.png'):
-    color_maze = np.zeros((*maze.shape, 3))
-    color_maze[maze == 1] = [0, 0, 0]
-    color_maze[maze == 0] = [1, 1, 1]
+# Initialize Pygame
+def main():
+    pygame.init()
 
-    plt.imshow(color_maze, interpolation='nearest')
-    plt.axis('off')
-    plt.savefig(filename, bbox_inches='tight', pad_inches=0.0)
-    plt.close()
+    width, height = 20, 20  # Maze dimensions
+    maze = generate_maze(width, height)
 
-width, height = 5, 5
-maze = generate_maze(width, height)
-plt.figure(figsize=(10, 10))
-carve_passages(maze, width, height, 1, True)
-plt.show()
-print(len(maze))
-display_maze(maze)
+    # Set up the display
+    screen_size = (maze.shape[1] * CELL_SIZE, maze.shape[0] * CELL_SIZE)
+    screen = pygame.display.set_mode(screen_size)
+    pygame.display.set_caption("Aldous-Broder Maze Generation")
+
+    # Run maze generation
+    carve_passages(maze, width, height, visualize=True, screen=screen)
+
+    # Show the final maze after completion
+    display_maze(screen, maze)
+
+    # Wait until the user closes the window
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+        pygame.time.Clock().tick(FPS)
+
+    pygame.quit()
+
+
+if __name__ == "__main__":
+    main()

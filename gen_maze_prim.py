@@ -1,8 +1,13 @@
-import matplotlib.pyplot as plt
+import pygame
 import numpy as np
 import random
 
-plt.figure(figsize=(10, 10))
+# Constants
+CELL_SIZE = 20
+FPS = 60
+
+# Initialize Pygame
+pygame.init()
 
 def generate_maze(width, height):
     maze = np.ones((2 * height + 1, 2 * width + 1), dtype=int)
@@ -13,14 +18,23 @@ def generate_maze(width, height):
 
     return maze
 
-def visualize_maze(maze):
-    # Visualization code for the maze (optional, can be customized)
-    plt.imshow(maze, cmap="binary")
-    plt.title("Prim's Maze Generation")
-    plt.axis('off')
-    plt.pause(0.001)
+def visualize_maze(screen, maze):
+    screen.fill((0, 0, 0))  # Clear the screen
+    color_maze = np.zeros((*maze.shape, 3), dtype=int)
 
-def carve_passages_prim(maze, width, height, start_x=0, start_y=0, update_interval=10, visualize=False):
+    # Walls as black
+    color_maze[maze == 1] = [0, 0, 0]
+    # Passages as white
+    color_maze[maze == 0] = [255, 255, 255]
+
+    # Draw the maze
+    for y in range(maze.shape[0]):
+        for x in range(maze.shape[1]):
+            pygame.draw.rect(screen, color_maze[y, x], (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+
+    pygame.display.flip()
+
+def carve_passages_prim(maze, width, height, start_x=0, start_y=0, screen=None, visualize=True):
     directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
     walls = []
 
@@ -37,7 +51,6 @@ def carve_passages_prim(maze, width, height, start_x=0, start_y=0, update_interv
         if 0 < wx < height * 2 and 0 < wy < width * 2:
             walls.append((wx, wy))
 
-    iteration = 0
     while walls:
         # Pick a random wall from the list
         random.shuffle(walls)
@@ -65,39 +78,46 @@ def carve_passages_prim(maze, width, height, start_x=0, start_y=0, update_interv
                 if 0 < wx2 < height * 2 and 0 < wy2 < width * 2 and maze[wx2, wy2] == 1:
                     walls.append((wx2, wy2))
 
-        iteration += 1
-        if iteration % update_interval == 0 and visualize:
-            visualize_maze(maze)  # Only visualize every `update_interval` iterations
+            if visualize:
+                # Visualize the current state of the maze
+                visualize_maze(screen, maze)
 
-def display_maze(maze):
-    color_maze = np.zeros((*maze.shape, 3))
-    color_maze[maze == 1] = [0, 0, 0]
-    color_maze[maze == 0] = [1, 1, 1]
-    #color_maze[1,1] = [0, 1, 0]
-    #color_maze[-2, -2] = [1, 0, 0]
+                # Draw a green border around the latest added cell
+                current_x, current_y = new_cell
+                pygame.draw.rect(screen, (0, 255, 0), (current_y * CELL_SIZE, current_x * CELL_SIZE, CELL_SIZE, CELL_SIZE), 3)
 
-    plt.title("Completed Maze")
-    plt.gcf().set_facecolor('white')
-    plt.imshow(color_maze, interpolation='nearest')
-    plt.axis('off')
-    plt.draw()
-    plt.show()
+                pygame.display.flip()
+                pygame.time.delay(10)  # Adjust delay for speed
+                pygame.event.pump()  # Handle Pygame events (e.g., quit)
 
-def save_maze_image(maze, filename='maze_image.png'):
-    color_maze = np.zeros((*maze.shape, 3))
-    color_maze[maze == 1] = [0, 0, 0]  # Walls as black
-    color_maze[maze == 0] = [1, 1, 1]  # Passages as white
-    print(maze.shape[1])
+    return maze
 
-    # Display the maze
-    plt.imshow(color_maze, interpolation='nearest')
-    plt.axis('off')
+def main():
+    width, height = 20, 20  # Maze dimensions
+    maze = generate_maze(width, height)
 
-    # Save the image with no extra padding
-    plt.savefig(filename, bbox_inches='tight', pad_inches=0.0)
-    plt.close()
+    # Set up the display
+    screen_size = (maze.shape[1] * CELL_SIZE, maze.shape[0] * CELL_SIZE)
+    screen = pygame.display.set_mode(screen_size)
+    pygame.display.set_caption("Prim's Maze Generation")
 
-width, height = 20, 20
-maze = generate_maze(width, height)
-carve_passages_prim(maze, width, height)
-save_maze_image(maze, 'generated_prim.png')
+    # Run maze generation
+    carve_passages_prim(maze, width, height, 0, 0, screen=screen, visualize=True)
+
+    # Display the final maze
+    visualize_maze(screen, maze)
+
+    # Wait until the user closes the window
+    running = True
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+
+        pygame.display.update()  # Update the display
+        pygame.time.Clock().tick(FPS)
+
+    pygame.quit()
+
+if __name__ == "__main__":
+    main()
