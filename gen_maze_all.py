@@ -21,18 +21,21 @@ def generate_maze(width, height):
     return maze
 
 
-def visualize_maze(screen, maze, current_cell=None):
+def visualize_maze(screen, maze, current_cell=None, backtracked=None):
     screen.fill((0, 0, 0))  # Clear the screen
-
+    color = (0,0,0)
     # Draw walls (cells with value 1)
     for y in range(maze.shape[0]):
         for x in range(maze.shape[1]):
             if maze[y, x] == 1:
-                pygame.draw.rect(screen, (0, 0, 0), (x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE))
+                color = (0,0,0)
             if maze[y, x] == 0:
                 # Draw empty cell (20x20 pixels)
                 color = (255, 255, 255)
-                pygame.draw.rect(screen, color, (x * CELL_SIZE, y * CELL_SIZE, (CELL_SIZE), (CELL_SIZE)))
+            if backtracked:
+                if (x,y) in backtracked:
+                    color = (0, 0, 255)
+            pygame.draw.rect(screen, color, (x * CELL_SIZE, y * CELL_SIZE, (CELL_SIZE), (CELL_SIZE)))
 
     # Highlight the current cell with a green border
     if current_cell:
@@ -142,6 +145,7 @@ def carve_passages(maze, width, height, screen=None, visualize=True):
     directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
     stack = [(start_x * 2 + 1, start_y * 2 + 1)]
     visited = set(stack)
+    backtracked_cells = set()
 
     while stack and screen:
         for event in pygame.event.get():
@@ -159,13 +163,28 @@ def carve_passages(maze, width, height, screen=None, visualize=True):
                 stack.append((nx, ny))
                 visited.add((nx, ny))
 
-                visualize_maze(screen, maze, (nx, ny))
-                pygame.display.flip()
-                pygame.time.delay(10)  # Adjust delay for speed
+                if  visualize:
+
+                    visualize_maze(screen, maze, (nx, ny), backtracked_cells)
+                    pygame.display.flip()
+                    pygame.time.delay(10)  # Adjust delay for speed
 
                 break
         else:
-            stack.pop()
+            # Handle backtracking
+            backtracked_cell = stack.pop()
+            backtracked_cells.add(backtracked_cell)
+
+            # Add the wall associated with the backtracked cell
+            if stack:
+                prev_x, prev_y = stack[-1]
+                wall_x, wall_y = (backtracked_cell[0] + prev_x) // 2, (backtracked_cell[1] + prev_y) // 2
+                backtracked_cells.add((wall_x, wall_y))
+
+            if visualize:
+                visualize_maze(screen, maze, None, backtracked_cells)
+                pygame.display.flip()
+                pygame.time.delay(10)  # Adjust delay for speed
 
 def main():
     width, height = 20, 20  # Maze dimensions
@@ -177,7 +196,9 @@ def main():
     pygame.display.set_caption("Maze Generation")
 
     # Run maze generation
-    carve_passages_prim(maze, width, height, screen=screen, visualize=True)
+    carve_passages(maze, width, height, screen=screen, visualize=True)
+
+    visualize_maze(screen, maze)
 
     # Wait until the user closes the window
     running = True
