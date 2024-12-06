@@ -12,3 +12,6 @@ def display_maze(maze):
     plt.axis('off')
     plt.draw()
     plt.show()
+
+
+def

@@ -22,28 +22,30 @@ def generate_maze(width, height):
 
 
 def visualize_maze(screen, maze, current_cell=None, backtracked=None):
-    screen.fill((0, 0, 0))  # Clear the screen
-    color = (0,0,0)
-    # Draw walls (cells with value 1)
+    screen.fill((0, 0, 0))  # Black background
+
+    overlap = 2  # Pixel overlap between cells
+
     for y in range(maze.shape[0]):
         for x in range(maze.shape[1]):
-            if maze[y, x] == 1:
-                color = (0,0,0)
-            if maze[y, x] == 0:
-                # Draw empty cell (20x20 pixels)
-                color = (255, 255, 255)
-            if backtracked:
-                if (x,y) in backtracked:
-                    color = (0, 0, 255)
-            pygame.draw.rect(screen, color, (x * CELL_SIZE, y * CELL_SIZE, (CELL_SIZE), (CELL_SIZE)))
+            if maze[y, x] == 0:  # White cell
+                pygame.draw.rect(screen, (255, 255, 255),
+                                 (x * (CELL_SIZE - overlap), y * (CELL_SIZE - overlap),
+                                  CELL_SIZE+10, CELL_SIZE+10))
 
-    # Highlight the current cell with a green border
+            if backtracked and (x, y) in backtracked:
+                pygame.draw.rect(screen, (0, 0, 255),
+                                 (x * (CELL_SIZE - overlap), y * (CELL_SIZE - overlap),
+                                  CELL_SIZE+12, CELL_SIZE+12))
+
+    # Highlight current cell
     if current_cell:
         current_x, current_y = current_cell
-        pygame.draw.rect(screen, (0, 255, 0), (current_x * CELL_SIZE, current_y * CELL_SIZE, CELL_SIZE, CELL_SIZE), 3)
+        pygame.draw.rect(screen, (0, 255, 0),
+                         (current_x * (CELL_SIZE - overlap), current_y * (CELL_SIZE - overlap),
+                          CELL_SIZE+12, CELL_SIZE+12), 3)
 
     pygame.display.flip()
-
 
 def carve_passages_prim(maze, width, height, screen=None, visualize=True):
     start_x, start_y = 0, 0
@@ -191,7 +193,12 @@ def main():
     maze = generate_maze(width, height)
 
     # Set up the display
-    screen_size = (maze.shape[1] * CELL_SIZE, maze.shape[0] * CELL_SIZE)
+    overlap = 2  # Pixel overlap between cells
+
+    screen_size = (
+        maze.shape[1] * (CELL_SIZE - overlap),
+        maze.shape[0] * (CELL_SIZE - overlap)
+    )
     screen = pygame.display.set_mode(screen_size)
     pygame.display.set_caption("Maze Generation")
 
