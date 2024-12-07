@@ -655,7 +655,7 @@ def carve_passages_kruskal(maze, width, height, screen=None, visualize=True):
 
 
 def main():
-    width, height = 20, 20  # Maze dimensions
+    width, height = 50, 20  # Maze dimensions
     maze = generate_maze(width, height)
 
     screen_size = (
@@ -666,7 +666,7 @@ def main():
     pygame.display.set_caption("Maze Geneeration")
 
     # Run maze generation
-    carve_passages_wilson(maze, width, height, screen=screen, visualize=False)
+    carve_passages_dfs(maze, width, height, screen=screen, visualize=True)
     add_maze_entrance_and_exit(maze)
 
     solve_maze_flood_fill(maze, screen=screen, visualize=True)
