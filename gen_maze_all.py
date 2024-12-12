@@ -1,6 +1,11 @@
+import time
+
 import pygame
 import numpy as np
 import random
+import os
+from datetime import datetime
+
 
 # Constants
 CELL_SIZE = 20
@@ -8,6 +13,81 @@ FPS = 60
 
 # Initialize Pygame
 pygame.init()
+pygame.mixer.init()
+
+def save_maze_to_png(screen):
+    """
+    Save the current maze screen as a PNG file.
+
+    Args:
+        screen (pygame.Surface): The Pygame screen surface to save
+    """
+    try:
+        # Create a 'maze_screenshots' directory if it doesn't exist
+        os.makedirs('maze_screenshots', exist_ok=True)
+
+        # Generate a filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = os.path.join('maze_screenshots', f'maze_{timestamp}.png')
+
+        # Save the screen to PNG
+        pygame.image.save(screen, filename)
+
+        # Optional: print confirmation (you could replace this with on-screen text)
+        print(f"Maze screenshot saved: {filename}")
+
+    except Exception as e:
+        print(f"Error saving screenshot: {e}")
+
+def generate_sound(frequency=440, duration=0.1, volume=0.5, waveform='sine', attack=0.02, decay=0.02):
+    """Generate a sound wave with basic waveforms and volume envelope."""
+    sample_rate = 44100  # Standard sample rate
+    samples = np.arange(int(sample_rate * duration)) / sample_rate
+
+    if waveform == 'sine':
+        wave = np.sin(2 * np.pi * frequency * samples)
+    elif waveform == 'square':
+        wave = np.sign(np.sin(2 * np.pi * frequency * samples))
+    elif waveform == 'triangle':
+        wave = 2 * np.abs(2 * (samples * frequency - np.floor(samples * frequency + 0.5))) - 1
+    else:
+        raise ValueError("Unsupported waveform type")
+
+    # Apply an envelope (fade in, fade out)
+    envelope = np.ones_like(wave)
+    attack_samples = int(sample_rate * attack)
+    decay_samples = int(sample_rate * decay)
+    envelope[:attack_samples] = np.linspace(0, 1, attack_samples)
+    envelope[-decay_samples:] = np.linspace(1, 0, decay_samples)
+
+    # Apply the envelope to the wave
+    wave = wave * envelope
+
+    # Normalize and scale to int16
+    wave = (wave * 32767 / np.max(np.abs(wave))).astype(np.int16)
+
+    # Create stereo sound array
+    stereo_wave = np.column_stack((wave, wave))
+
+    # Convert to a pygame sound object
+    return pygame.sndarray.make_sound(stereo_wave)
+
+
+# Generate placeholder sounds with improved qualities
+wall_carve_sound = generate_sound(frequency=440, duration=0.15, volume=0.3, waveform='sine', attack=0.05, decay=0.05)
+path_create_sound = generate_sound(frequency=520, duration=0.15, volume=0.3, waveform='triangle', attack=0.05,
+                                   decay=0.05)
+explore_sound = generate_sound(frequency=600, duration=0.1, volume=0.2, waveform='sine', attack=0.03, decay=0.03)
+backtrack_sound = generate_sound(frequency=380, duration=0.1, volume=0.2, waveform='sine', attack=0.03, decay=0.03)
+path_complete_sound = generate_sound(frequency=800, duration=0.3, volume=0.5, waveform='triangle', attack=0.1,
+                                     decay=0.1)
+
+# Adjust the volume of each sound
+wall_carve_sound.set_volume(0.3)
+path_create_sound.set_volume(0.3)
+explore_sound.set_volume(0.2)
+backtrack_sound.set_volume(0.2)
+path_complete_sound.set_volume(0.5)
 
 def generate_maze(width, height):
     maze = np.ones((2 * height + 1, 2 * width + 1), dtype=int)
@@ -443,6 +523,8 @@ def solve_maze_dfs(maze, screen, visualize=True):
         # Mark as part of the exploration path
         maze[y, x] = 4  # Mark as visited
 
+        explore_sound.play()
+
         # Visualization
         if visualize:
             visualize_maze(screen, maze)
@@ -466,6 +548,7 @@ def solve_maze_dfs(maze, screen, visualize=True):
         # Backtrack
         if current not in [entrance, exit]:
             maze[y, x] = 0  # Mark as backtracked
+            backtrack_sound.play()
 
         # Visualization for backtracking
         if visualize:
@@ -483,7 +566,7 @@ def solve_maze_dfs(maze, screen, visualize=True):
     # Mark the solution path
     for px, py in path:
         maze[py, px] = 5  # Mark as part of the solution path
-
+        path_create_sound.play()
         # Visualization for solution path
         if visualize:
             visualize_maze(screen, maze)
@@ -493,6 +576,8 @@ def solve_maze_dfs(maze, screen, visualize=True):
     # Ensure the entrance and exit are properly marked
     maze[entrance[1], entrance[0]] = 5
     maze[exit[1], exit[0]] = 5
+
+    path_complete_sound.play()
 
 
 def solve_maze_flood_fill(maze, screen, visualize=True):
@@ -644,6 +729,8 @@ def carve_passages_kruskal(maze, width, height, screen=None, visualize=True):
             # Union the sets
             union(idx1, idx2)
 
+            wall_carve_sound.play()
+
             # Visualize if enabled
             if visualize and screen:
                 visualize_maze(screen, maze)
@@ -655,7 +742,8 @@ def carve_passages_kruskal(maze, width, height, screen=None, visualize=True):
 
 
 def main():
-    width, height = 50, 20  # Maze dimensions
+    width, height = 20, 20  # Maze dimensions
+
     maze = generate_maze(width, height)
 
     screen_size = (
@@ -663,13 +751,15 @@ def main():
         maze.shape[0] * CELL_SIZE
     )
     screen = pygame.display.set_mode(screen_size)
-    pygame.display.set_caption("Maze Geneeration")
+    pygame.display.set_caption("Maze Generation")
 
     # Run maze generation
-    carve_passages_dfs(maze, width, height, screen=screen, visualize=True)
+    carve_passages_kruskal(maze, width, height, screen=screen, visualize=True)
     add_maze_entrance_and_exit(maze)
+    visualize_maze(screen, maze)
+    save_maze_to_png(screen)
 
-    solve_maze_flood_fill(maze, screen=screen, visualize=True)
+    solve_maze_dfs(maze, screen=screen, visualize=True)
     visualize_maze(screen, maze)
 
     # Wait until the user closes the window
@@ -678,12 +768,14 @@ def main():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_s:
+                    save_maze_to_png(screen)
 
         pygame.display.update()  # Update the display
         pygame.time.Clock().tick(FPS)
 
     pygame.quit()
-
 
 if __name__ == "__main__":
     main()
