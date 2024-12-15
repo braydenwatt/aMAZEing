@@ -12,7 +12,7 @@ A Minecraft-native maze generator that creates intricate mazes within the game w
 - **Features**:
   - Procedural maze generation directly in Minecraft
   - Customizable maze size and complexity
-  - Instant world transformation
+  - Open-world capability to explore maze
   - Compatible with vanilla Minecraft
 
 ### 2. Pygame Maze Generator 🐍
@@ -31,9 +31,8 @@ A Unity-powered maze visualization and interaction system.
 - **Features**:
   - 3D maze generation
   - Walkable maze environments
-  - First-person and top-down view modes
-  - Maze seed and difficulty settings
-  - Potential game integration
+  - Top-down view mode
+  - Cool
 
 ## 🔧 Technologies Used
 
