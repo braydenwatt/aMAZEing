@@ -30,8 +30,8 @@ A Unity-powered maze visualization and interaction system.
 
 - **Features**:
   - 3D maze generation
-  - Walkable maze environments
-  - Top-down view mode
+  - Creative maze-solving visualization
+  - Third-person view mode
   - Cool
 
 ## 🔧 Technologies Used
