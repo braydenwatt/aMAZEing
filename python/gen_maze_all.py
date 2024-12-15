@@ -6,7 +6,6 @@ import random
 import os
 from datetime import datetime
 
-
 # Constants
 CELL_SIZE = 20
 FPS = 60
@@ -347,7 +346,7 @@ def carve_passages_prim(maze, width, height, screen=None, visualize=True):
                 visualize_maze(screen, maze, (new_cell[1], new_cell[0]))
 
                 pygame.display.flip()
-                pygame.time.delay(10)  # Adjust delay for speed
+                pygame.time.delay(50)  # Adjust delay for speed
                 pygame.event.pump()  # Handle Pygame events (e.g., quit)
     return maze
 
@@ -421,13 +420,14 @@ def carve_passages_dfs(maze, width, height, screen=None, visualize=True):
                 if visualize:
                     visualize_maze(screen, maze, (nx, ny), backtracked_cells, finalized_cells)
                     pygame.display.flip()
-                    pygame.time.delay(10)  # Adjust delay for speed
+                    pygame.time.delay(200)  # Adjust delay for speed
 
                 break
         else:
             # Handle backtracking
             backtracked_cell = stack.pop()
             backtracked_cells.add(backtracked_cell)
+
 
             # Add the wall associated with the backtracked cell
             if stack:
@@ -436,9 +436,9 @@ def carve_passages_dfs(maze, width, height, screen=None, visualize=True):
                 backtracked_cells.add((wall_x, wall_y))
 
             if visualize:
-                visualize_maze(screen, maze, None, backtracked_cells, finalized_cells)
+                visualize_maze(screen, maze, (wall_x,wall_y), backtracked_cells, finalized_cells)
                 pygame.display.flip()
-                pygame.time.delay(10)
+                pygame.time.delay(200)
 
 
 def add_maze_entrance_and_exit(maze):
@@ -735,14 +735,14 @@ def carve_passages_kruskal(maze, width, height, screen=None, visualize=True):
             if visualize and screen:
                 visualize_maze(screen, maze)
                 pygame.display.flip()
-                pygame.time.delay(10)  # Adjust delay for speed
+                pygame.time.delay(20)  # Adjust delay for speed
                 pygame.event.pump()  # Handle Pygame events (e.g., quit)
 
     return maze
 
 
 def main():
-    width, height = 20, 20  # Maze dimensions
+    width, height = 10, 20  # Maze dimensions
 
     maze = generate_maze(width, height)
 
@@ -754,13 +754,12 @@ def main():
     pygame.display.set_caption("Maze Generation")
 
     # Run maze generation
-    carve_passages_kruskal(maze, width, height, screen=screen, visualize=True)
+    carve_passages_kruskal(maze, width, height, screen=screen, visualize=False)
     add_maze_entrance_and_exit(maze)
     visualize_maze(screen, maze)
     save_maze_to_png(screen)
 
-    solve_maze_dfs(maze, screen=screen, visualize=True)
-    visualize_maze(screen, maze)
+    solve_maze_flood_fill(maze,screen,True)
 
     # Wait until the user closes the window
     running = True
