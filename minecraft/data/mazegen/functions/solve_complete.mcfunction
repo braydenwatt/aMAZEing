@@ -1,0 +1,2 @@
+tellraw @a ["",{"text":"Maze Solved! ","color":"green","bold":true},{"text":"Congratulations!","color":"gold"}]
+execute as Arco23 at @s run playsound minecraft:entity.player.levelup master Arco23 ~ ~ ~ 1
