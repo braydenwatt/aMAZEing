@@ -741,26 +741,102 @@ def carve_passages_kruskal(maze, width, height, screen=None, visualize=True):
     return maze
 
 
+import time
+
+import pygame
+import numpy as np
+import random
+import os
+from datetime import datetime
+
+# ... [previous imports and function definitions remain the same] ...
+
 def main():
-    width, height = 10, 20  # Maze dimensions
-
+    # Interactive input for maze generation
+    print("Maze Generator and Solver")
+    
+    # Width and height input
+    while True:
+        try:
+            width = int(input("Enter maze width (min 5, max 50): "))
+            height = int(input("Enter maze height (min 5, max 50): "))
+            
+            if 5 <= width <= 50 and 5 <= height <= 50:
+                break
+            else:
+                print("Width and height must be between 5 and 50.")
+        except ValueError:
+            print("Please enter valid integer values.")
+    
+    # Maze generation algorithm selection
+    generation_algorithms = {
+        '1': ('Wilson', carve_passages_wilson),
+        '2': ('Prim', carve_passages_prim),
+        '3': ('Depth-First Search', carve_passages_dfs),
+        '4': ('Aldous-Broder', carve_passages_aldous),
+        '5': ('Kruskal', carve_passages_kruskal)
+    }
+    
+    print("\nSelect Maze Generation Algorithm:")
+    for key, (name, _) in generation_algorithms.items():
+        print(f"{key}. {name}")
+    
+    while True:
+        gen_choice = input("Enter algorithm number: ")
+        if gen_choice in generation_algorithms:
+            gen_algo = generation_algorithms[gen_choice][1]
+            gen_name = generation_algorithms[gen_choice][0]
+            break
+        else:
+            print("Invalid selection. Try again.")
+    
+    # Solve maze option
+    solve_choice = input("Do you want to solve the maze? (y/n): ").lower() == 'y'
+    
+    # Solving algorithm selection
+    if solve_choice:
+        solving_algorithms = {
+            '1': ('Depth-First Search', solve_maze_dfs),
+            '2': ('Flood Fill', solve_maze_flood_fill)
+        }
+        
+        print("\nSelect Maze Solving Algorithm:")
+        for key, (name, _) in solving_algorithms.items():
+            print(f"{key}. {name}")
+        
+        while True:
+            solve_algo_choice = input("Enter solving algorithm number: ")
+            if solve_algo_choice in solving_algorithms:
+                solve_algo = solving_algorithms[solve_algo_choice][1]
+                solve_name = solving_algorithms[solve_algo_choice][0]
+                break
+            else:
+                print("Invalid selection. Try again.")
+    
+    # Screen setup
     maze = generate_maze(width, height)
-
+    
     screen_size = (
         maze.shape[1] * CELL_SIZE,
         maze.shape[0] * CELL_SIZE
     )
     screen = pygame.display.set_mode(screen_size)
-    pygame.display.set_caption("Maze Generation")
+    pygame.display.set_caption(f"{gen_name} Maze Generation")
 
-    # Run maze generation
-    carve_passages_kruskal(maze, width, height, screen=screen, visualize=False)
+    # Generate maze
+    maze = gen_algo(maze, width, height, screen=screen, visualize=True)
+    
+    # Add entrance and exit
     add_maze_entrance_and_exit(maze)
-    visualize_maze(screen, maze)
+    
+    # Save initial maze screenshot
     save_maze_to_png(screen)
-
-    solve_maze_flood_fill(maze,screen,True)
-
+    
+    # Solve maze if chosen
+    if solve_choice:
+        pygame.display.set_caption(f"{solve_name} Maze Solving")
+        solve_algo(maze, screen, True)
+    
     # Wait until the user closes the window
     running = True
     while running:
