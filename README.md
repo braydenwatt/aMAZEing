@@ -51,7 +51,8 @@ A Unity-powered maze visualization and interaction system.
 ```bash
 git clone https://github.com/braydenwatt/aMAZEing
 pip install pygame
-python maze_gen_all.py
+pip install numpy
+python gen_maze_all.py
 ```
 
 ### Unity Maze Display
