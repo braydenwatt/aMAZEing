@@ -1,0 +1,10 @@
+<engine:UXML xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:engine="UnityEngine.UIElements" xmlns:editor="UnityEditor.UIElements" noNamespaceSchemaLocation="../UIElementsSchema/UIElements.xsd" editor-extension-mode="False">
+    <engine:Button name="hideView" display-tooltip-when-elided="true" style="width: 26px; height: 22px; -unity-text-align: middle-center; text-overflow: clip; font-size: 1px; background-color: rgb(207, 120, 120);" />
+    <engine:VisualElement name="uiContainer" style="flex-grow: 1; align-self: stretch; width: 134px; height: 207px;">
+        <engine:IntegerField value="42" name="boardSizeInput" style="width: 121px; align-self: stretch; align-items: flex-start; justify-content: flex-end; height: 38px; position: absolute; top: 30px; left: 2px;" />
+        <engine:Button text="Generate Maze&#10;" name="generateMazeButton" style="width: 45px; white-space: nowrap; text-overflow: clip; -unity-text-align: upper-center; position: absolute; top: 0; left: 0; font-size: 6px; height: 28px;" />
+        <engine:DropdownField choices="Kruskal" name="GenAlgo" style="width: 86px; position: absolute; top: 0; left: 43px; height: 28px;" />
+        <engine:Button text="Solve Maze&#10;" name="solveMazeButton" style="width: 45px; white-space: nowrap; text-overflow: clip; -unity-text-align: upper-center; position: absolute; top: 71px; left: 0; font-size: 6px; height: 28px;" />
+        <engine:DropdownField choices="DFS" name="SolveAlgo" style="width: 86px; position: absolute; top: 71px; left: 43px; height: 28px;" />
+    </engine:VisualElement>
+</engine:UXML>
