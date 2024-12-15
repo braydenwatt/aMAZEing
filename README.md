@@ -50,9 +50,9 @@ A Unity-powered maze visualization and interaction system.
 
 ### Pygame Maze Generator
 ```bash
-git clone [repository-url]
+git clone https://github.com/braydenwatt/aMAZEing
 pip install pygame
-python maze_generator.py
+python maze_gen_all.py
 ```
 
 ### Unity Maze Display
@@ -62,7 +62,7 @@ python maze_generator.py
 
 ## 📦 Dependencies
 
-- Minecraft: Java Edition
+- Minecraft: Java Edition 1.17.1
 - Python 3.8+
 - Pygame
 - Unity 2022.3 LTS
